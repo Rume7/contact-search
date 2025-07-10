@@ -60,10 +60,12 @@
       }
     },
     "createdAt": {
-      "type": "date"
+      "type": "date",
+      "format": "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
     },
     "updatedAt": {
-      "type": "date"
+      "type": "date",
+      "format": "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
     }
   }
 }

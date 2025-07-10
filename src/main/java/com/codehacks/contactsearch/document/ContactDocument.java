@@ -34,10 +34,10 @@ public class ContactDocument {
     @Field(type = FieldType.Text, analyzer = "standard")
     private String city;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime createdAt;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = {}, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime updatedAt;
 
     public ContactDocument(String id, String firstName, String lastName, String email, String city,
