@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: contact-search
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/contacts_db
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  elasticsearch:
+    uris: http://elasticsearch:9200
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.data.elasticsearch: DEBUG

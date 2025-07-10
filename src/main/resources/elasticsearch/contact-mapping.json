@@ -1,0 +1,69 @@
+{
+  "properties": {
+    "id": {
+      "type": "keyword"
+    },
+    "firstName": {
+      "type": "text",
+      "analyzer": "standard",
+      "fields": {
+        "autocomplete": {
+          "type": "text",
+          "analyzer": "autocomplete_analyzer",
+          "search_analyzer": "autocomplete_search_analyzer"
+        },
+        "keyword": {
+          "type": "keyword"
+        }
+      }
+    },
+    "lastName": {
+      "type": "text",
+      "analyzer": "standard",
+      "fields": {
+        "autocomplete": {
+          "type": "text",
+          "analyzer": "autocomplete_analyzer",
+          "search_analyzer": "autocomplete_search_analyzer"
+        },
+        "keyword": {
+          "type": "keyword"
+        }
+      }
+    },
+    "email": {
+      "type": "keyword",
+      "fields": {
+        "text": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "autocomplete": {
+          "type": "text",
+          "analyzer": "autocomplete_analyzer",
+          "search_analyzer": "autocomplete_search_analyzer"
+        }
+      }
+    },
+    "city": {
+      "type": "text",
+      "analyzer": "standard",
+      "fields": {
+        "keyword": {
+          "type": "keyword"
+        },
+        "autocomplete": {
+          "type": "text",
+          "analyzer": "autocomplete_analyzer",
+          "search_analyzer": "autocomplete_search_analyzer"
+        }
+      }
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "updatedAt": {
+      "type": "date"
+    }
+  }
+}
