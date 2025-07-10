@@ -30,7 +30,7 @@ public class ContactSearchService {
         );
 
         return searchHits.stream()
-                .map(hit -> hit.getContent())
+                .map(SearchHit::getContent)
                 .limit(size)
                 .collect(Collectors.toList());
     }
