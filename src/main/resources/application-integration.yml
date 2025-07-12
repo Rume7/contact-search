@@ -9,14 +9,20 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       transaction-isolation: TRANSACTION_READ_COMMITTED
+      auto-commit: false
+      minimum-idle: 5
+      maximum-pool-size: 10
+      pool-name: HikariCP-Test
 
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   elasticsearch:
     uris: http://elasticsearch-test:9200
@@ -31,4 +37,5 @@ server:
 logging:
   level:
     org.springframework.data.elasticsearch: WARN
-    org.elasticsearch: WARN 
+    org.elasticsearch: WARN
+    org.testcontainers: INFO
