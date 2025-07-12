@@ -121,8 +121,8 @@ jobs:
         context: .
         push: true
         tags: |
-          ${{ CONTACT_SEARCH_TOKEN.DOCKERHUB_USERNAME }}/contact-search:latest
-          ${{ CONTACT_SEARCH_TOKEN.DOCKERHUB_USERNAME }}/contact-search:${{ github.sha }}
+          ${{ secrets.DOCKER_HUB_USERNAME }}/contact-search:latest
+          ${{ secrets.DOCKER_HUB_USERNAME }}/contact-search:${{ github.sha }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
