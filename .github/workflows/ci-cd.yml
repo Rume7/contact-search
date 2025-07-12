@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, 'features/**' ]
+    branches: [ '**' ]
   pull_request:
     branches: [ main ]
 
@@ -134,7 +134,7 @@ jobs:
   build-feature:
     runs-on: ubuntu-latest
     needs: [test, security-scan]
-    if: startsWith(github.ref, 'refs/heads/features/')
+    if: github.ref != 'refs/heads/main'
     
     steps:
     - name: Checkout code

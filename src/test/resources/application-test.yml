@@ -1,20 +1,33 @@
 spring:
-  elasticsearch:
-    uris: http://localhost:9999  # Non-existent Elasticsearch to disable it
+  application:
+    name: contact-search
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
+    url: jdbc:tc:postgresql:16.8-alpine:///testdb
+    username: test
+    password: test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    hikari:
+      transaction-isolation: TRANSACTION_READ_COMMITTED
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  elasticsearch:
+    uris: http://localhost:9200
   sql:
     init:
       mode: never
 
+server:
+  port: 8080
+
 logging:
   level:
-    org.springframework.data.elasticsearch: OFF
-    org.elasticsearch: OFF 
+    org.springframework.data.elasticsearch: WARN
+    org.elasticsearch: WARN
+    org.testcontainers: INFO

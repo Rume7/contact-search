@@ -9,6 +9,10 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       transaction-isolation: TRANSACTION_READ_COMMITTED
+      auto-commit: false
+      minimum-idle: 5
+      maximum-pool-size: 10
+      pool-name: HikariCP-Test
 
   jpa:
     hibernate:
