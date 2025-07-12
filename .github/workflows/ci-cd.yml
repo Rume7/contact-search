@@ -54,7 +54,9 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t contact-search:${{ github.sha }} .
+        # Create a timestamp-based tag for better traceability
+        TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+        docker build -t contact-search:$TIMESTAMP .
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -141,9 +143,13 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Extract branch name
+    - name: Generate timestamp tag
       shell: bash
-      run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+      run: |
+        # Create a timestamp-based tag for better traceability
+        TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
+        echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+        echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
     - name: Build Docker image for feature branch
       uses: docker/build-push-action@v5
@@ -151,7 +157,7 @@ jobs:
         context: .
         push: false
         tags: |
-          contact-search:${{ env.BRANCH_NAME }}
+          contact-search:${{ env.TIMESTAMP }}
           contact-search:${{ github.sha }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
@@ -164,6 +170,6 @@ jobs:
     - name: Upload Docker image as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: docker-image-${{ env.BRANCH_NAME }}
+        name: docker-image-${{ env.TIMESTAMP }}
         path: /tmp/.buildx-cache
         retention-days: 7 
