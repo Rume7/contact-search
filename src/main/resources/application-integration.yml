@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: contact-search
+
+  datasource:
+    url: jdbc:postgresql://postgres-test:5432/contacts_db_test
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  elasticsearch:
+    uris: http://elasticsearch-test:9200
+
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.data.elasticsearch: WARN
+    org.elasticsearch: WARN 

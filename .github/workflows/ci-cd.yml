@@ -1,0 +1,169 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, 'features/**' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and test with Maven
+      run: |
+        mvn clean test -Dspring.profiles.active=test
+      env:
+        # Testcontainers will manage its own containers
+        TESTCONTAINERS_RYUK_DISABLED: true
+
+    - name: Run integration tests with Testcontainers
+      run: |
+        mvn test -Dtest=*IntegrationTest,*ServiceTest -Dspring.profiles.active=integration
+      env:
+        TESTCONTAINERS_RYUK_DISABLED: true
+
+    - name: Build Docker image
+      run: |
+        docker build -t contact-search:${{ github.sha }} .
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: target/surefire-reports/
+        retention-days: 30
+
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-reports
+        path: target/site/jacoco/
+        retention-days: 30
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run OWASP Dependency Check
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'Contact Search Application'
+        path: '.'
+        format: 'HTML'
+        out: 'reports'
+
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-scan-results
+        path: reports/
+        retention-days: 30
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/contact-search:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/contact-search:${{ github.sha }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+    - name: Move cache
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  build-feature:
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    if: startsWith(github.ref, 'refs/heads/features/')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Extract branch name
+      shell: bash
+      run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+    - name: Build Docker image for feature branch
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: |
+          contact-search:${{ env.BRANCH_NAME }}
+          contact-search:${{ github.sha }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+    - name: Move cache
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+    - name: Upload Docker image as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image-${{ env.BRANCH_NAME }}
+        path: /tmp/.buildx-cache
+        retention-days: 7 

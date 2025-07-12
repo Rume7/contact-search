@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: contact-search
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  elasticsearch:
+    uris: http://localhost:9200
+
+  sql:
+    init:
+      mode: never
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.data.elasticsearch: WARN
+    org.elasticsearch: WARN 
