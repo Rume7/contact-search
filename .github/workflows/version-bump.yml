@@ -1,0 +1,147 @@
+name: Version Bump
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Setup Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      
+      - name: Determine version bump type
+        id: version-type
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "type=${{ github.event.inputs.version_type }}" >> $GITHUB_OUTPUT
+          else
+            # Check commit messages for conventional commits
+            COMMIT_MSG=$(git log --oneline -1 --format=%B)
+            if echo "$COMMIT_MSG" | grep -q "^feat\|^BREAKING CHANGE"; then
+              echo "type=minor" >> $GITHUB_OUTPUT
+            elif echo "$COMMIT_MSG" | grep -q "^fix\|^docs\|^style\|^refactor\|^test\|^chore"; then
+              echo "type=patch" >> $GITHUB_OUTPUT
+            else
+              echo "type=patch" >> $GITHUB_OUTPUT
+            fi
+          fi
+      
+      - name: Bump version
+        id: bump-version
+        run: |
+          # Read current version from pom.xml
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Parse version components
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]//-SNAPSHOT/}
+          
+          # Bump version based on type
+          if [ "${{ steps.version-type.outputs.type }}" = "major" ]; then
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
+          elif [ "${{ steps.version-type.outputs.type }}" = "minor" ]; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$((MINOR + 1))
+            NEW_PATCH=0
+          else
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$((PATCH + 1))
+          fi
+          
+          NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+          echo "New version: $NEW_VERSION"
+          
+          # Update pom.xml
+          mvn versions:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false
+          
+          # Update version in other files if needed
+          # Add any other files that need version updates here
+          
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "previous-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Create release commit
+        run: |
+          git add .
+          git commit -m "Bump version to ${{ steps.bump-version.outputs.version }}"
+          git tag -a "v${{ steps.bump-version.outputs.version }}" -m "Release version ${{ steps.bump-version.outputs.version }}"
+      
+      - name: Push changes
+        run: |
+          git push origin main
+          git push origin "v${{ steps.bump-version.outputs.version }}"
+      
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "v${{ steps.bump-version.outputs.version }}"
+          release_name: "Release v${{ steps.bump-version.outputs.version }}"
+          body: |
+            ## What's Changed
+            
+            This release includes:
+            - Version bump from ${{ steps.bump-version.outputs.previous-version }} to ${{ steps.bump-version.outputs.version }}
+            
+            ## Changelog
+            
+            Please refer to the commit history for detailed changes.
+          draft: false
+          prerelease: false
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Version bumped to ${{ steps.bump-version.outputs.version }}`
+            }) 
