@@ -18,7 +18,6 @@ A Spring Boot application for contact management with advanced search capabiliti
 - **Database**: PostgreSQL 16.8
 - **Search Engine**: Elasticsearch 8.8.0
 - **Containerization**: Docker & Docker Compose
-- **Testing**: JUnit 5, Testcontainers, AssertJ
 - **CI/CD**: GitHub Actions
 
 ## Quick Start
@@ -44,30 +43,30 @@ A Spring Boot application for contact management with advanced search capabiliti
 
 3. **Access the application**
    - Application: http://localhost:8080
+   - API Documentation: http://localhost:8080/swagger-ui.html
    - Health Check: http://localhost:8080/actuator/health
-   - PostgreSQL: localhost:5432
-   - Elasticsearch: http://localhost:9200
 
 ### API Endpoints
 
 #### Contact Management
-- `GET /api/contacts` - Get all contacts (paginated)
-- `POST /api/contacts` - Create a new contact
-- `GET /api/contacts/{id}` - Get contact by ID
-- `PUT /api/contacts/{id}` - Update contact
-- `DELETE /api/contacts/{id}` - Delete contact
+- `GET /api/v1/contacts` - Get all contacts (paginated)
+- `POST /api/v1/contacts` - Create a new contact
+- `GET /api/v1/contacts/{id}` - Get contact by ID
+- `PUT /api/v1/contacts/{id}` - Update contact
+- `DELETE /api/v1/contacts/{id}` - Delete contact
+- `POST /api/v1/contacts/sync` - Sync data to Elasticsearch
 
 #### Search Operations
-- `GET /api/search/contacts?query={searchTerm}` - Full-text search
-- `GET /api/search/contacts/autocomplete?query={term}` - Autocomplete search
-- `GET /api/search/contacts/city?city={cityName}` - Search by city
-- `POST /api/contacts/sync` - Sync data to Elasticsearch
+- `GET /api/v1/search/contacts?query={searchTerm}` - Full-text search
+- `GET /api/v1/search/contacts/autocomplete?query={term}` - Autocomplete search
+- `GET /api/v1/search/contacts/fuzzy?query={term}` - Fuzzy search with typo tolerance
+- `GET /api/v1/search/contacts/city?city={cityName}` - Search by city
 
 ### Example Usage
 
 ```bash
 # Create a contact
-curl -X POST "http://localhost:8080/api/contacts" \
+curl -X POST "http://localhost:8080/api/v1/contacts" \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "John",
@@ -77,17 +76,13 @@ curl -X POST "http://localhost:8080/api/contacts" \
   }'
 
 # Search contacts
-curl -X GET "http://localhost:8080/api/search/contacts?query=john"
+curl -X GET "http://localhost:8080/api/v1/search/contacts?query=john"
 
 # Get all contacts
-curl -X GET "http://localhost:8080/api/contacts"
+curl -X GET "http://localhost:8080/api/v1/contacts"
 ```
 
 ## Testing
-
-### Test Setup
-
-The application uses **Testcontainers** for integration testing, providing isolated, containerized test environments for both PostgreSQL and Elasticsearch.
 
 ### Running Tests
 
@@ -95,26 +90,9 @@ The application uses **Testcontainers** for integration testing, providing isola
 # Run all tests
 mvn test
 
-# Run only unit tests
-mvn test -Dspring.profiles.active=test
-
-# Run integration tests
-mvn test -Dtest=*IntegrationTest,*ServiceTest -Dspring.profiles.active=integration
-
 # Run with coverage
 mvn clean test jacoco:report
 ```
-
-### Test Structure
-
-- **Unit Tests**: `ContactSearchApplicationTests.java` - Basic context loading
-- **Integration Tests**: `ContactIntegrationTest.java` - Full API testing with Testcontainers
-- **Service Tests**: `ContactServiceTest.java` - Service layer testing with Testcontainers
-
-### Test Profiles
-
-- **test**: Uses H2 in-memory database for fast unit tests
-- **integration**: Uses Testcontainers for PostgreSQL and Elasticsearch
 
 ## CI/CD Pipeline
 
@@ -125,14 +103,6 @@ The GitHub Actions workflow includes:
 3. **Security Scan**: OWASP Dependency Check
 4. **Docker Build**: Build and cache Docker images
 5. **Deployment**: Push to Docker Hub (main branch only)
-
-### Pipeline Features
-
-- ✅ **Testcontainers**: Isolated test environments
-- ✅ **Code Coverage**: JaCoCo reports
-- ✅ **Security Scanning**: OWASP dependency check
-- ✅ **Docker Caching**: Optimized build times
-- ✅ **Artifact Upload**: Test results and reports
 
 ## Development
 
@@ -164,15 +134,6 @@ The application automatically creates the database schema on startup. The `conta
 - `city` (Indexed)
 - `created_at`
 - `updated_at`
-
-### Elasticsearch Mapping
-
-Custom mapping with autocomplete analyzers for enhanced search capabilities:
-
-- **Text Analysis**: Standard analyzer for general search
-- **Autocomplete**: Edge n-gram analyzer for suggestions
-- **Keyword Fields**: Exact match capabilities
-- **Date Fields**: Proper date formatting
 
 ## Configuration
 
@@ -208,4 +169,23 @@ For production, set these GitHub secrets:
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under a custom license that allows use but restricts redistribution.
+
+Copyright (c) 2025 Contact Search Team. All rights reserved.
+
+**Permission is granted to:**
+- Use this software for personal, educational, or commercial purposes
+- Modify the source code for internal use
+- Run the application in any environment
+
+**Permission is NOT granted to:**
+- Redistribute this software or its derivatives without explicit written permission from the author
+- Include this software in other projects without permission
+- Create derivative works for public distribution without permission
+- Use this software in a way that violates applicable laws
+
+**For redistribution or commercial use, please contact:**
+- Email: support@contactsearch.com
+- GitHub: https://github.com/Rume7/contact-search
+
+This software is provided "as is" without warranty of any kind, express or implied.
