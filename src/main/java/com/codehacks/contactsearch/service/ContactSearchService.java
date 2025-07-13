@@ -84,6 +84,34 @@ public class ContactSearchService {
                 .collect(Collectors.toList());
     }
 
+    public List<ContactDocument> spellingCorrectionSearch(String query, int size) {
+        String queryString = buildSpellingCorrectionQueryString(query);
+        Query searchQuery = new StringQuery(queryString);
+
+        SearchHits<ContactDocument> searchHits = elasticsearchOperations.search(
+                searchQuery, ContactDocument.class
+        );
+
+        return searchHits.stream()
+                .map(SearchHit::getContent)
+                .limit(size)
+                .collect(Collectors.toList());
+    }
+
+    public List<ContactDocument> partialMatchSearch(String query, int size) {
+        String queryString = buildPartialMatchQueryString(query);
+        Query searchQuery = new StringQuery(queryString);
+
+        SearchHits<ContactDocument> searchHits = elasticsearchOperations.search(
+                searchQuery, ContactDocument.class
+        );
+
+        return searchHits.stream()
+                .map(SearchHit::getContent)
+                .limit(size)
+                .collect(Collectors.toList());
+    }
+
     private String buildMultiMatchQueryString(String query) {
         return String.format("""
             {
@@ -133,5 +161,132 @@ public class ContactSearchService {
                 }
             }
             """, query, query);
+    }
+
+    private String buildSpellingCorrectionQueryString(String query) {
+        return String.format("""
+            {
+                "bool": {
+                    "should": [
+                        {
+                            "multi_match": {
+                                "query": "%s",
+                                "fields": ["firstName^3", "lastName^3", "email^2", "city"],
+                                "fuzziness": "AUTO",
+                                "minimum_should_match": "60%%"
+                            }
+                        },
+                        {
+                            "multi_match": {
+                                "query": "%s",
+                                "fields": ["firstName.keyword^2", "lastName.keyword^2", "email^2", "city.keyword"],
+                                "type": "best_fields"
+                            }
+                        },
+                        {
+                            "match": {
+                                "firstName": {
+                                    "query": "%s",
+                                    "fuzziness": "AUTO",
+                                    "prefix_length": 1
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "lastName": {
+                                    "query": "%s",
+                                    "fuzziness": "AUTO",
+                                    "prefix_length": 1
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "city": {
+                                    "query": "%s",
+                                    "fuzziness": "AUTO",
+                                    "prefix_length": 1
+                                }
+                            }
+                        },
+                        {
+                            "wildcard": {
+                                "firstName": {
+                                    "value": "*%s*"
+                                }
+                            }
+                        },
+                        {
+                            "wildcard": {
+                                "lastName": {
+                                    "value": "*%s*"
+                                }
+                            }
+                        },
+                        {
+                            "wildcard": {
+                                "city": {
+                                    "value": "*%s*"
+                                }
+                            }
+                        }
+                    ],
+                    "minimum_should_match": 1
+                }
+            }
+            """, query, query, query, query, query, query, query, query);
+    }
+
+    private String buildPartialMatchQueryString(String query) {
+        return String.format("""
+            {
+                "bool": {
+                    "should": [
+                        {
+                            "multi_match": {
+                                "query": "%s",
+                                "fields": [
+                                    "firstName^3",
+                                    "lastName^3",
+                                    "firstName.autocomplete^2",
+                                    "lastName.autocomplete^2",
+                                    "firstName.ngram^2",
+                                    "lastName.ngram^2",
+                                    "email^2",
+                                    "city"
+                                ],
+                                "type": "bool_prefix"
+                            }
+                        },
+                        {
+                            "multi_match": {
+                                "query": "%s",
+                                "fields": [
+                                    "firstName.ngram^3",
+                                    "lastName.ngram^3"
+                                ],
+                                "type": "best_fields"
+                            }
+                        },
+                        {
+                            "wildcard": {
+                                "firstName": {
+                                    "value": "*%s*"
+                                }
+                            }
+                        },
+                        {
+                            "wildcard": {
+                                "lastName": {
+                                    "value": "*%s*"
+                                }
+                            }
+                        }
+                    ],
+                    "minimum_should_match": 1
+                }
+            }
+            """, query, query, query, query);
     }
 }

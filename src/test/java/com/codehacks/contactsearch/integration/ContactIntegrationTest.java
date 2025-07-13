@@ -88,7 +88,7 @@ class ContactIntegrationTest {
 
     @Test
     void testContactApiEndpoints() {
-        // Test POST /api/contacts
+        // Test POST /api/v1/contacts
         Contact contact = new Contact();
         contact.setFirstName("Jane");
         contact.setLastName("Smith");
@@ -96,7 +96,7 @@ class ContactIntegrationTest {
         contact.setCity("Test City");
 
         ResponseEntity<Contact> createResponse = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/contacts",
+                "http://localhost:" + port + "/api/v1/contacts",
                 contact,
                 Contact.class
         );
@@ -105,9 +105,9 @@ class ContactIntegrationTest {
         assertThat(createResponse.getBody()).isNotNull();
         assertThat(createResponse.getBody().getId()).isNotNull();
 
-        // Test GET /api/contacts
+        // Test GET /api/v1/contacts
         ResponseEntity<String> getResponse = restTemplate.getForEntity(
-                "http://localhost:" + port + "/api/contacts",
+                "http://localhost:" + port + "/api/v1/contacts",
                 String.class
         );
 
@@ -115,10 +115,10 @@ class ContactIntegrationTest {
         assertThat(getResponse.getBody()).contains("Jane");
         assertThat(getResponse.getBody()).contains("Smith");
 
-        // Test GET /api/contacts/{id}
+        // Test GET /api/v1/contacts/{id}
         Long contactId = createResponse.getBody().getId();
         ResponseEntity<Contact> getByIdResponse = restTemplate.getForEntity(
-                "http://localhost:" + port + "/api/contacts/" + contactId,
+                "http://localhost:" + port + "/api/v1/contacts/" + contactId,
                 Contact.class
         );
 
@@ -147,7 +147,7 @@ class ContactIntegrationTest {
 
         // Sync to Elasticsearch
         ResponseEntity<String> syncResponse = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/contacts/sync",
+                "http://localhost:" + port + "/api/v1/contacts/sync",
                 null,
                 String.class
         );
@@ -156,7 +156,7 @@ class ContactIntegrationTest {
 
         // Test search endpoint
         ResponseEntity<String> searchResponse = restTemplate.getForEntity(
-                "http://localhost:" + port + "/api/search/contacts?query=alice",
+                "http://localhost:" + port + "/api/v1/search/contacts?query=alice",
                 String.class
         );
 

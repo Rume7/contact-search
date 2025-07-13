@@ -1,4 +1,7 @@
 {
+  "index": {
+    "max_ngram_diff": 10
+  },
   "analysis": {
     "analyzer": {
       "autocomplete_analyzer": {
@@ -10,6 +13,16 @@
         "type": "custom",
         "tokenizer": "standard",
         "filter": ["lowercase"]
+      },
+      "ngram_analyzer": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "filter": ["lowercase", "ngram_filter"]
+      },
+      "ngram_search_analyzer": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "filter": ["lowercase"]
       }
     },
     "filter": {
@@ -17,6 +30,11 @@
         "type": "edge_ngram",
         "min_gram": 2,
         "max_gram": 20
+      },
+      "ngram_filter": {
+        "type": "ngram",
+        "min_gram": 2,
+        "max_gram": 10
       }
     }
   }
