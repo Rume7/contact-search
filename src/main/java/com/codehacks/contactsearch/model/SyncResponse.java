@@ -1,13 +1,9 @@
 package com.codehacks.contactsearch.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class SyncResponse {
-    private String message;
-    private String description;
+/**
+ * Response for sync operations
+ * @param message Short status message
+ * @param description Detailed description of the sync operation
+ */
+public record SyncResponse(String message, String description) {
 } 

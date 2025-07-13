@@ -100,4 +100,40 @@ public class ContactSearchController {
         List<ContactDocument> results = contactSearchService.searchByCity(city, size);
         return ResponseEntity.ok(results);
     }
+
+    @GetMapping("/spelling-correction")
+    @Operation(
+        summary = "Spelling correction search",
+        description = "Advanced search that handles common misspellings of names and cities with enhanced fuzzy matching"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Spelling correction search results retrieved successfully",
+            content = @Content(schema = @Schema(implementation = ContactDocument.class)))
+    })
+    public ResponseEntity<List<ContactDocument>> spellingCorrectionSearch(
+            @Parameter(description = "Search query with potential misspellings", required = true, example = "Jhon Smith")
+            @RequestParam String query,
+            @Parameter(description = "Maximum number of results", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+        List<ContactDocument> results = contactSearchService.spellingCorrectionSearch(query, size);
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/partial-match")
+    @Operation(
+        summary = "Partial/Shortened name search",
+        description = "Search contacts by partial or shortened names using n-gram and wildcard matching"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Partial match search results retrieved successfully",
+            content = @Content(schema = @Schema(implementation = ContactDocument.class)))
+    })
+    public ResponseEntity<List<ContactDocument>> partialMatchSearch(
+            @Parameter(description = "Partial or shortened name", required = true, example = "Alex MacSmith")
+            @RequestParam String query,
+            @Parameter(description = "Maximum number of results", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+        List<ContactDocument> results = contactSearchService.partialMatchSearch(query, size);
+        return ResponseEntity.ok(results);
+    }
 }
