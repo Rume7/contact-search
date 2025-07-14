@@ -1,7 +1,6 @@
 package com.codehacks.contactsearch;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -15,15 +14,28 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import org.springframework.context.annotation.Import;
+import com.codehacks.contactsearch.integration.TestSecurityConfig;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
-@SpringBootTest
-@AutoConfigureWebMvc
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
 @Testcontainers
 @ActiveProfiles("integration")
+@Import(TestSecurityConfig.class)
+@ComponentScan(basePackages = "com.codehacks.contactsearch", 
+               excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, 
+                                                    pattern = "com\\.codehacks\\.contactsearch\\.(security|service\\.(AuthService|UserService)|controller\\.AuthController)"))
+@MockBean(com.codehacks.contactsearch.controller.AuthController.class)
+@MockBean(com.codehacks.contactsearch.service.AuthService.class)
+@MockBean(com.codehacks.contactsearch.service.UserService.class)
 class OpenApiIntegrationTest {
 
     @Container
