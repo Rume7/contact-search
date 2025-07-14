@@ -16,6 +16,9 @@ public class TokenBlacklistService {
      * @param expirationTime Token expiration time in milliseconds
      */
     public void blacklistToken(String token, long expirationTime) {
+        if (token == null || token.trim().isEmpty()) {
+            return; // Don't blacklist null or empty tokens
+        }
         blacklistedTokens.put(token, expirationTime);
     }
     
@@ -25,6 +28,10 @@ public class TokenBlacklistService {
      * @return true if token is blacklisted, false otherwise
      */
     public boolean isBlacklisted(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return false; // Null or empty tokens are not blacklisted
+        }
+        
         Long expirationTime = blacklistedTokens.get(token);
         if (expirationTime == null) {
             return false;

@@ -77,13 +77,18 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        // Check if token is blacklisted
-        if (tokenBlacklistService.isBlacklisted(token)) {
+        try {
+            // Check if token is blacklisted
+            if (tokenBlacklistService.isBlacklisted(token)) {
+                return false;
+            }
+            
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        } catch (Exception e) {
+            // Invalid token format or other parsing errors
             return false;
         }
-        
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
     public void invalidateToken(String token) {
