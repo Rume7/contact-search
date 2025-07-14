@@ -42,11 +42,8 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
-    environment:
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - SPRING_ELASTICSEARCH_URIS=${SPRING_ELASTICSEARCH_URIS}
+    env_file:
+      - .env
 
 volumes:
   postgres_data:

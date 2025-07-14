@@ -249,24 +249,25 @@ public class ContactSearchService {
                                 "fields": [
                                     "firstName^3",
                                     "lastName^3",
-                                    "firstName.autocomplete^2",
-                                    "lastName.autocomplete^2",
                                     "firstName.ngram^2",
                                     "lastName.ngram^2",
                                     "email^2",
                                     "city"
                                 ],
-                                "type": "bool_prefix"
+                                "type": "best_fields",
+                                "minimum_should_match": "50%%"
                             }
                         },
                         {
                             "multi_match": {
                                 "query": "%s",
                                 "fields": [
-                                    "firstName.ngram^3",
-                                    "lastName.ngram^3"
+                                    "firstName.autocomplete^3",
+                                    "lastName.autocomplete^3",
+                                    "email.autocomplete^2",
+                                    "city.autocomplete"
                                 ],
-                                "type": "best_fields"
+                                "type": "bool_prefix"
                             }
                         },
                         {
@@ -282,11 +283,53 @@ public class ContactSearchService {
                                     "value": "*%s*"
                                 }
                             }
+                        },
+                        {
+                            "wildcard": {
+                                "email": {
+                                    "value": "*%s*"
+                                }
+                            }
+                        },
+                        {
+                            "wildcard": {
+                                "city": {
+                                    "value": "*%s*"
+                                }
+                            }
+                        },
+                        {
+                            "prefix": {
+                                "firstName": {
+                                    "value": "%s"
+                                }
+                            }
+                        },
+                        {
+                            "prefix": {
+                                "lastName": {
+                                    "value": "%s"
+                                }
+                            }
+                        },
+                        {
+                            "prefix": {
+                                "email": {
+                                    "value": "%s"
+                                }
+                            }
+                        },
+                        {
+                            "prefix": {
+                                "city": {
+                                    "value": "%s"
+                                }
+                            }
                         }
                     ],
                     "minimum_should_match": 1
                 }
             }
-            """, query, query, query, query);
+            """, query, query, query, query, query, query, query, query, query, query);
     }
 }

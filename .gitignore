@@ -33,5 +33,6 @@ build/
 .vscode/
 
 .env
+application-local.yml
 HELP.md
 .gitattributes

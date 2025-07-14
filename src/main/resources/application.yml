@@ -3,9 +3,9 @@ spring:
     name: contact-search
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/contacts_db
-    username: postgres
-    password: password
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/contacts_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
     hikari:
       transaction-isolation: TRANSACTION_READ_COMMITTED
@@ -29,10 +29,16 @@ spring:
       continue-on-error: true
 
   elasticsearch:
-    uris: http://elasticsearch:9200
+    uris: ${ELASTICSEARCH_URI:http://elasticsearch:9200}
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  expiration: ${JWT_EXPIRATION:86400000}  # 24 hours in milliseconds
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days in milliseconds
 
 # OpenAPI/Swagger Configuration
 springdoc:
@@ -51,3 +57,4 @@ springdoc:
 logging:
   level:
     org.springframework.data.elasticsearch: DEBUG
+    org.springframework.security: DEBUG

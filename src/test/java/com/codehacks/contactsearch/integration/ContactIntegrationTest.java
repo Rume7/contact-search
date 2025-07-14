@@ -18,12 +18,27 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
 @Testcontainers
 @ActiveProfiles("integration")
+@Import(TestSecurityConfig.class)
+@ComponentScan(basePackages = "com.codehacks.contactsearch", 
+               excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, 
+                                                    pattern = "com\\.codehacks\\.contactsearch\\.(security|service\\.(AuthService|UserService)|controller\\.AuthController)"))
+@Profile("integration")
+@MockBean(com.codehacks.contactsearch.controller.AuthController.class)
+@MockBean(com.codehacks.contactsearch.service.AuthService.class)
+@MockBean(com.codehacks.contactsearch.service.UserService.class)
 class ContactIntegrationTest {
 
     @Container

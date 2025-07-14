@@ -1,10 +1,15 @@
 package com.codehacks.contactsearch.service;
 
 import com.codehacks.contactsearch.model.Contact;
+import com.codehacks.contactsearch.integration.TestSecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,6 +28,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("integration")
+@Import(TestSecurityConfig.class)
+@ComponentScan(basePackages = "com.codehacks.contactsearch", 
+               excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, 
+                                                    pattern = "com\\.codehacks\\.contactsearch\\.(security|service\\.(AuthService|UserService)|controller\\.AuthController)"))
+@MockBean(com.codehacks.contactsearch.controller.AuthController.class)
+@MockBean(com.codehacks.contactsearch.service.AuthService.class)
+@MockBean(com.codehacks.contactsearch.service.UserService.class)
 class ContactServiceTest {
 
     @Container
