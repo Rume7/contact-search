@@ -15,7 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -75,7 +80,10 @@ public class PasswordController {
             }
 
             // Reset password
-            userService.resetPassword(email, request.getNewPassword());
+            boolean success = userService.resetPassword(email, request.getNewPassword());
+            if (!success) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Failed to reset password"));
+            }
             
             // Invalidate the token after use
             passwordResetService.invalidateToken(request.getResetToken());
@@ -98,7 +106,10 @@ public class PasswordController {
             String username = authentication.getName();
             
             // Change password
-            userService.changePassword(username, request.getCurrentPassword(), request.getNewPassword());
+            boolean success = userService.changePassword(username, request.getCurrentPassword(), request.getNewPassword());
+            if (!success) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Failed to change password"));
+            }
             
             log.info("Password changed successfully for user: {}", username);
             return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
@@ -122,7 +133,10 @@ public class PasswordController {
             }
 
             // Force password change
-            userService.forcePasswordChange(request.getUsername(), request.getNewPassword());
+            boolean success = userService.forcePasswordChange(request.getUsername(), request.getNewPassword());
+            if (!success) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Failed to change password"));
+            }
             
             log.info("Password force changed for user: {} by admin", request.getUsername());
             return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
