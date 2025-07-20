@@ -28,6 +28,17 @@ public class UserService {
     }
 
     /**
+     * Get user by email
+     * @param email Email to find
+     * @return User entity
+     * @throws UsernameNotFoundException if user not found
+     */
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    }
+
+    /**
      * Create a new user
      * @param username Username for the new user
      * @param email Email for the new user
@@ -87,5 +98,60 @@ public class UserService {
      */
     public boolean userExistsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * Change password for a user (requires current password verification)
+     * @param username Username of the user
+     * @param currentPassword Current password for verification
+     * @param newPassword New password to set
+     * @return true if password changed successfully
+     * @throws IllegalArgumentException if current password is incorrect
+     */
+    public boolean changePassword(String username, String currentPassword, String newPassword) {
+        User user = getUserByUsername(username);
+        
+        // Verify current password
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+        
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        
+        return true;
+    }
+
+    /**
+     * Reset password using reset token (for forgot password flow)
+     * @param email Email of the user
+     * @param newPassword New password to set
+     * @return true if password reset successfully
+     */
+    public boolean resetPassword(String email, String newPassword) {
+        User user = getUserByEmail(email);
+        
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        
+        return true;
+    }
+
+    /**
+     * Force password change (admin function - no current password required)
+     * @param username Username of the user
+     * @param newPassword New password to set
+     * @return true if password changed successfully
+     */
+    public boolean forcePasswordChange(String username, String newPassword) {
+        User user = getUserByUsername(username);
+        
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        
+        return true;
     }
 } 
